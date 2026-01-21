@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Budget Planner</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="/_sdk/data_sdk.js"></script>
+ 
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Nunito:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
     body {
@@ -121,12 +120,24 @@
        </div>
       </div>
      </div>
-    </section><!-- Expenses Section -->
+    </section>
+
+    <!-- Expenses Section -->
     <section id="section-expenses" class="section glass-card rounded-3xl p-6 md:p-8 mb-8 hidden">
      <div class="flex items-center gap-3 mb-6"><span class="text-3xl">💸</span>
       <h2 class="heading-font text-2xl md:text-3xl font-bold text-amber-800">Expense Categories</h2>
      </div>
      <p class="text-amber-600 mb-6">Know exactly where your money goes. Organize spending into clear categories.</p>
+      
+
+       <button onclick="openExpenseModal()" class="mt-4 w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-all flex items-center justify-center gap-2"> 
+             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+       </svg> Add Expense </button>
+
+
+
+
      <div class="grid md:grid-cols-3 gap-6"><!-- Fixed Expenses -->
       <div class="bg-gradient-to-br from-rose-50 to-red-50 rounded-2xl p-5">
        <h3 class="font-bold text-rose-800 mb-4">🏠 Fixed Expenses</h3>
@@ -180,7 +191,9 @@
        </div>
       </div>
      </div>
-    </section><!-- Budget Section -->
+    </section>
+
+    <!-- Budget Section -->
     <section id="section-budget" class="section glass-card rounded-3xl p-6 md:p-8 mb-8 hidden">
      <div class="flex items-center gap-3 mb-6"><span class="text-3xl">🎯</span>
       <h2 class="heading-font text-2xl md:text-3xl font-bold text-purple-800">Fixed Budget Setup</h2>
@@ -221,7 +234,10 @@
        <p id="total-remaining" class="text-2xl font-bold text-purple-800">$0.00</p>
       </div>
      </div>
-    </section><!-- Expense Tracker Section -->
+    </section>
+
+    <!-- Expense Tracker Section -->
+
     <section id="section-tracker" class="section glass-card rounded-3xl p-6 md:p-8 mb-8 hidden">
      <div class="flex items-center gap-3 mb-6"><span class="text-3xl">📉</span>
       <h2 class="heading-font text-2xl md:text-3xl font-bold text-rose-800">Expense Tracker</h2>
@@ -239,17 +255,23 @@
           <th class="py-3 px-2 w-20"></th>
          </tr>
         </thead>
-        <tbody id="expense-tracker-table" class="text-rose-900"><!-- Expense rows rendered here -->
+        <tbody id="expense-tracker-table" class="text-rose-900"> <!-- Expense rows rendered here -->
         </tbody>
        </table>
       </div>
       <div class="mt-4 pt-4 border-t border-rose-200 flex justify-between items-center"><span class="font-semibold text-rose-800">Total Expenses:</span> <span id="total-tracked-expenses" class="text-xl font-bold text-rose-800">$0.00</span>
-      </div><button onclick="openExpenseModal()" class="mt-4 w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-all flex items-center justify-center gap-2">
+      </div>
+
+      <button onclick="openExpenseModal()" class="mt-4 w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-all flex items-center justify-center gap-2"> 
        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
        </svg> Add Expense </button>
+
      </div>
-    </section><!-- Savings Section -->
+    </section>
+
+    <!-- Savings Section -->
+
     <section id="section-savings" class="section glass-card rounded-3xl p-6 md:p-8 mb-8 hidden">
      <div class="flex items-center gap-3 mb-6"><span class="text-3xl">💾</span>
       <h2 class="heading-font text-2xl md:text-3xl font-bold text-cyan-800">Savings &amp; Goals</h2>
@@ -270,7 +292,10 @@
         <div class="flex items-center gap-3 p-3 bg-white/60 rounded-xl"><span class="text-2xl">🌟</span> <span class="text-cyan-700 font-medium">Future Goals</span>
         </div>
        </div>
-      </div><!-- Goals Tracker -->
+      </div>
+
+      <!-- Goals Tracker -->
+
       <div class="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl p-5">
        <h3 class="font-bold text-teal-800 mb-4">🎯 Goals Tracker</h3>
        <div class="overflow-x-auto">
@@ -404,57 +429,15 @@
       'Rental Income', 'Investments / Dividends', 'Side Hustles', 'Other Income'
     ];
 
-    // Initialize Element SDK
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange: async (config) => {
-          const font = config.font_family || defaultConfig.font_family;
-          document.body.style.fontFamily = `${font}, sans-serif`;
-          
-          document.getElementById('main-title').textContent = config.planner_title || defaultConfig.planner_title;
-          document.getElementById('main-tagline').textContent = config.tagline || defaultConfig.tagline;
-          document.getElementById('affirmation-1').textContent = `"${config.affirmation_one || defaultConfig.affirmation_one}"`;
-          document.getElementById('affirmation-2').textContent = `"${config.affirmation_two || defaultConfig.affirmation_two}"`;
-          document.getElementById('affirmation-3').textContent = `"${config.affirmation_three || defaultConfig.affirmation_three}"`;
-        },
-        mapToCapabilities: (config) => ({
-          recolorables: [
-            {
-              get: () => config.primary_color || defaultConfig.primary_color,
-              set: (value) => window.elementSdk.setConfig({ primary_color: value })
-            },
-            {
-              get: () => config.secondary_color || defaultConfig.secondary_color,
-              set: (value) => window.elementSdk.setConfig({ secondary_color: value })
-            },
-            {
-              get: () => config.accent_color || defaultConfig.accent_color,
-              set: (value) => window.elementSdk.setConfig({ accent_color: value })
-            },
-            {
-              get: () => config.text_color || defaultConfig.text_color,
-              set: (value) => window.elementSdk.setConfig({ text_color: value })
-            }
-          ],
-          borderables: [],
-          fontEditable: {
-            get: () => config.font_family || defaultConfig.font_family,
-            set: (value) => window.elementSdk.setConfig({ font_family: value })
-          },
-          fontSizeable: undefined
-        }),
-        mapToEditPanelValues: (config) => new Map([
-          ['planner_title', config.planner_title || defaultConfig.planner_title],
-          ['tagline', config.tagline || defaultConfig.tagline],
-          ['affirmation_one', config.affirmation_one || defaultConfig.affirmation_one],
-          ['affirmation_two', config.affirmation_two || defaultConfig.affirmation_two],
-          ['affirmation_three', config.affirmation_three || defaultConfig.affirmation_three]
-        ])
-      });
-    }
 
-    // Data Handler for Data SDK
+    /* 1️⃣  PASTE YOUR PERSONAL GOOGLE-SCRIPT URL ONCE               */
+      /*     (you can store it in localStorage or ask the user once)   */
+      const GOOGLE_SCRIPT_URL = localStorage.getItem('personalScriptUrl') ||
+                                prompt('Paste your private Google-Script URL (from the PDF):');
+      if (!GOOGLE_SCRIPT_URL) throw new Error('Google-Script URL required');
+      localStorage.setItem('personalScriptUrl', GOOGLE_SCRIPT_URL);
+
+       // Data Handler for Data SDK
     const dataHandler = {
       onDataChanged(data) {
         allData = data;
@@ -800,37 +783,71 @@
       `);
     }
 
+
+
+    async function loadFromGoogleSheet() {
+  const res  = await fetch(GOOGLE_SCRIPT_URL);
+  const rows = await res.json();          // array of objects from doGet()
+  allData = rows.map(r => ({
+    type: r.Type,
+    name: r.Name,
+    category: r.Category,
+    amount: parseFloat(r.Amount || 0),
+    date: r.Date,
+    month: r.Month,
+    notes: r.Notes,
+    createdAt: r.CreatedAt,
+    __backendId: r.CreatedAt             // cheap unique key
+  }));
+  renderAll();
+}
+
+       /*  2️⃣  NEW saveIncome — NO Canva SDK ****************************/
     async function saveIncome(e) {
       e.preventDefault();
-      if (isLoading || allData.length >= 999) {
-        if (allData.length >= 999) showToast('Maximum 999 records reached', 'error');
-        return;
-      }
-      
+      if (isLoading) return;                 // 999 limit removed — Sheets can handle > 999 rows
+
       isLoading = true;
       const btn = document.getElementById('save-income-btn');
       btn.textContent = 'Saving...';
       btn.disabled = true;
 
-      const result = await window.dataSdk.create({
+      // build the exact JSON your doPost() expects
+      const payload = {
         type: 'income',
         name: document.getElementById('income-source').value,
         expected: parseFloat(document.getElementById('income-expected').value) || 0,
-        actual: parseFloat(document.getElementById('income-actual').value) || 0,
+        actual:   parseFloat(document.getElementById('income-actual').value)   || 0,
         month: getMonthKey(currentMonth),
         createdAt: new Date().toISOString()
-      });
+      };
 
-      isLoading = false;
-      if (result.isOk) {
-        showToast('Income added successfully!');
-        closeModal();
-      } else {
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const answer = await res.json();
+        if (answer.status === 'ok') {
+          showToast('Income added successfully!');
+          closeModal();
+          await loadFromGoogleSheet();   // refresh local allData array
+        } else {
+          throw new Error(answer.message || 'Server error');
+        }
+      } catch (err) {
+        console.error(err);
         showToast('Failed to save income', 'error');
         btn.textContent = 'Save';
         btn.disabled = false;
+      } finally {
+        isLoading = false;
       }
     }
+
+     
 
     function openBudgetModal(editId = null) {
       const item = editId ? allData.find(d => d.__backendId === editId) : null;
@@ -864,50 +881,58 @@
       `);
     }
 
+ 
     function editBudget(id) {
       openBudgetModal(id);
     }
 
-    async function saveBudget(e, editId) {
-      e.preventDefault();
-      if (isLoading) return;
-      if (!editId && allData.length >= 999) {
-        showToast('Maximum 999 records reached', 'error');
-        return;
-      }
-      
-      isLoading = true;
-      const btn = document.getElementById('save-budget-btn');
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
+  async function saveBudget(e, editId = '') {
+  e.preventDefault();
+  if (isLoading) return;
 
-      const data = {
-        type: 'budget',
-        category: document.getElementById('budget-category').value,
-        budgeted: parseFloat(document.getElementById('budget-amount').value) || 0,
-        spent: parseFloat(document.getElementById('budget-spent').value) || 0,
-        month: getMonthKey(currentMonth),
-        createdAt: new Date().toISOString()
-      };
+  isLoading = true;
+  const btn = document.getElementById('save-budget-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-      let result;
-      if (editId) {
-        const existing = allData.find(d => d.__backendId === editId);
-        result = await window.dataSdk.update({ ...existing, ...data });
-      } else {
-        result = await window.dataSdk.create(data);
-      }
+  // build payload
+  const payload = {
+    type: 'budget',
+    category: document.getElementById('budget-category').value,
+    budgeted: parseFloat(document.getElementById('budget-amount').value) || 0,
+    spent:    parseFloat(document.getElementById('budget-spent').value)  || 0,
+    month: getMonthKey(currentMonth),
+    createdAt: editId || new Date().toISOString()   // reuse CreatedAt as cheap UID
+  };
 
-      isLoading = false;
-      if (result.isOk) {
-        showToast('Budget saved successfully!');
-        closeModal();
-      } else {
-        showToast('Failed to save budget', 'error');
-        btn.textContent = 'Save';
-        btn.disabled = false;
-      }
+  // If we are editing we first delete the old row (simple way: skip duplicate key in Sheets)
+  // For now we just append the new values – Google Sheets will keep both rows;
+  // you can enhance doPost() to overwrite on matching (type,month,category) if you prefer.
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const answer = await res.json();
+    if (answer.status === 'ok') {
+      showToast('Budget saved successfully!');
+      closeModal();
+      await loadFromGoogleSheet();   // refresh tables
+    } else {
+      throw new Error(answer.message || 'Server error');
     }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to save budget', 'error');
+    btn.textContent = 'Save';
+    btn.disabled = false;
+  } finally {
+    isLoading = false;
+  }
+}
 
     function openExpenseModal() {
       const options = expenseCategories.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -945,53 +970,81 @@
       `);
     }
 
-    async function saveExpense(e) {
-      e.preventDefault();
-      if (isLoading || allData.length >= 999) {
-        if (allData.length >= 999) showToast('Maximum 999 records reached', 'error');
-        return;
-      }
-      
-      isLoading = true;
-      const btn = document.getElementById('save-expense-btn');
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
 
-      const expenseDate = new Date(document.getElementById('expense-date').value);
-      const expenseMonth = getMonthKey(expenseDate);
+   
+   async function saveExpense(e) {
+  e.preventDefault();
+  if (isLoading) return;          // 999 limit removed – Sheets handles > 999 rows
 
-      const result = await window.dataSdk.create({
-        type: 'expense',
-        date: document.getElementById('expense-date').value,
-        description: document.getElementById('expense-description').value,
-        category: document.getElementById('expense-category').value,
-        amount: parseFloat(document.getElementById('expense-amount').value) || 0,
-        month: expenseMonth,
-        createdAt: new Date().toISOString()
-      });
+  isLoading = true;
+  const btn = document.getElementById('save-expense-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-      isLoading = false;
-      if (result.isOk) {
-        showToast('Expense added successfully!');
-        closeModal();
-        // Update budget spent amount for this category
-        updateBudgetSpent(document.getElementById('expense-category').value, parseFloat(document.getElementById('expense-amount').value) || 0, expenseMonth);
-      } else {
-        showToast('Failed to save expense', 'error');
-        btn.textContent = 'Save';
-        btn.disabled = false;
-      }
-    }
+  const expenseDate = new Date(document.getElementById('expense-date').value);
+  const expenseMonth = getMonthKey(expenseDate);
 
-    async function updateBudgetSpent(category, amount, month) {
-      const budgetItem = allData.find(d => d.type === 'budget' && d.category === category && d.month === month);
-      if (budgetItem) {
-        await window.dataSdk.update({
+  // Build payload
+  const payload = {
+    type: 'expense',
+    date: document.getElementById('expense-date').value,
+    description: document.getElementById('expense-description').value,
+    category: document.getElementById('expense-category').value,
+    amount: parseFloat(document.getElementById('expense-amount').value) || 0,
+    month: expenseMonth,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    // 1. save the expense row
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const answer = await res.json();
+    if (answer.status !== 'ok') throw new Error(answer.message || 'Server error');
+
+    // 2. auto-update budget “spent” for this category
+    await updateBudgetSpent(payload.category, payload.amount, expenseMonth);
+
+    showToast('Expense added successfully!');
+    closeModal();
+    await loadFromGoogleSheet(); // refresh tables
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to save expense', 'error');
+    btn.textContent = 'Save';
+    btn.disabled = false;
+  } finally {
+    isLoading = false;
+  }
+}
+
+            async function updateBudgetSpent(category, amount, month) {
+        // find the existing budget row for this category/month
+        const budgetItem = allData.find(d => d.type === 'budget' && d.category === category && d.month === month);
+        if (!budgetItem) return;          // no budget set, nothing to update
+
+        // build updated payload (keep same key so Sheets can overwrite if you enhance doPost)
+        const updated = {
           ...budgetItem,
           spent: (budgetItem.spent || 0) + amount
-        });
+        };
+
+        // send to Google Sheets
+        try {
+          const res = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(updated),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const ans = await res.json();
+          if (ans.status !== 'ok') throw new Error(ans.message || 'Server error');
+        } catch (err) {
+          console.error('Could not update budget spent:', err);
+        }
       }
-    }
 
     function openSavingsModal() {
       showModal(`
@@ -1019,35 +1072,49 @@
       `);
     }
 
-    async function saveSavingsGoal(e) {
+
+    
+        async function saveSavingsGoal(e) {
       e.preventDefault();
-      if (isLoading || allData.length >= 999) {
-        if (allData.length >= 999) showToast('Maximum 999 records reached', 'error');
-        return;
-      }
-      
+      if (isLoading) return;          // 999 limit removed – Sheets handles > 999 rows
+
       isLoading = true;
       const btn = document.getElementById('save-savings-btn');
       btn.textContent = 'Saving...';
       btn.disabled = true;
 
-      const result = await window.dataSdk.create({
+      // Build payload
+      const payload = {
         type: 'savings',
         name: document.getElementById('savings-name').value,
         target: parseFloat(document.getElementById('savings-target').value) || 0,
-        saved: parseFloat(document.getElementById('savings-saved').value) || 0,
+        saved:  parseFloat(document.getElementById('savings-saved').value)  || 0,
         month: getMonthKey(currentMonth),
         createdAt: new Date().toISOString()
-      });
+      };
 
-      isLoading = false;
-      if (result.isOk) {
-        showToast('Savings goal added!');
-        closeModal();
-      } else {
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const answer = await res.json();
+        if (answer.status === 'ok') {
+          showToast('Savings goal added!');
+          closeModal();
+          await loadFromGoogleSheet(); // refresh tables
+        } else {
+          throw new Error(answer.message || 'Server error');
+        }
+      } catch (err) {
+        console.error(err);
         showToast('Failed to save goal', 'error');
         btn.textContent = 'Save';
         btn.disabled = false;
+      } finally {
+        isLoading = false;
       }
     }
 
@@ -1077,78 +1144,94 @@
       `);
     }
 
-    async function updateSavingsAmount(e, id) {
-      e.preventDefault();
-      if (isLoading) return;
-      
-      isLoading = true;
-      const btn = document.getElementById('update-savings-btn');
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
+            
+          async function updateSavingsAmount(e, id) {
+        e.preventDefault();
+        if (isLoading) return;
 
-      const item = allData.find(d => d.__backendId === id);
-      const addAmount = parseFloat(document.getElementById('add-savings-amount').value) || 0;
-      
-      const result = await window.dataSdk.update({
-        ...item,
-        saved: (item.saved || 0) + addAmount
-      });
+        isLoading = true;
+        const btn = document.getElementById('update-savings-btn');
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
 
-      isLoading = false;
-      if (result.isOk) {
-        showToast('Savings updated!');
-        closeModal();
-      } else {
-        showToast('Failed to update savings', 'error');
-        btn.textContent = 'Add';
-        btn.disabled = false;
-      }
-    }
+        // locate the goal
+        const item = allData.find(d => d.__backendId === id);
+        if (!item) return;
 
-    async function saveNotes() {
-      if (isLoading) return;
-      
-      const notesValue = document.getElementById('monthly-notes').value;
-      const monthKey = getMonthKey(currentMonth);
-      const existingNotes = allData.find(d => d.type === 'notes' && d.month === monthKey);
-      
-      isLoading = true;
-      const btn = document.getElementById('save-notes-btn');
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
+        const addAmount = parseFloat(document.getElementById('add-savings-amount').value) || 0;
+        const updated = {
+          ...item,
+          saved: (item.saved || 0) + addAmount
+        };
 
-      let result;
-      if (existingNotes) {
-        result = await window.dataSdk.update({
-          ...existingNotes,
-          notes: notesValue
-        });
-      } else {
-        if (allData.length >= 999) {
-          showToast('Maximum 999 records reached', 'error');
-          isLoading = false;
-          btn.textContent = 'Save Notes';
+        try {
+          // send updated row to Google Sheets
+          const res = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(updated),
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const ans = await res.json();
+          if (ans.status !== 'ok') throw new Error(ans.message || 'Server error');
+
+          showToast('Savings updated!');
+          closeModal();
+          await loadFromGoogleSheet(); // refresh
+        } catch (err) {
+          console.error(err);
+          showToast('Failed to update savings', 'error');
+          btn.textContent = 'Add';
           btn.disabled = false;
-          return;
+        } finally {
+          isLoading = false;
         }
-        result = await window.dataSdk.create({
+      }
+
+    
+        async function saveNotes() {
+        if (isLoading) return;
+
+        const notesValue = document.getElementById('monthly-notes').value;
+        const monthKey = getMonthKey(currentMonth);
+        const existingNotes = allData.find(d => d.type === 'notes' && d.month === monthKey);
+
+        isLoading = true;
+        const btn = document.getElementById('save-notes-btn');
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        // Build payload
+        const payload = {
           type: 'notes',
           notes: notesValue,
           month: monthKey,
-          createdAt: new Date().toISOString()
-        });
+          createdAt: existingNotes ? existingNotes.createdAt : new Date().toISOString() // keep same key
+        };
+
+        try {
+          const res = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const ans = await res.json();
+          if (ans.status !== 'ok') throw new Error(ans.message || 'Server error');
+
+          showToast('Notes saved!');
+          await loadFromGoogleSheet(); // refresh
+        } catch (err) {
+          console.error(err);
+          showToast('Failed to save notes', 'error');
+        } finally {
+          isLoading = false;
+          btn.textContent = 'Save Notes';
+          btn.disabled = false;
+        }
       }
 
-      isLoading = false;
-      btn.textContent = 'Save Notes';
-      btn.disabled = false;
-      
-      if (result.isOk) {
-        showToast('Notes saved!');
-      } else {
-        showToast('Failed to save notes', 'error');
-      }
-    }
+        
 
     // Delete Functions
     function deleteItem(id) {
@@ -1163,29 +1246,48 @@
       document.getElementById('delete-confirm').classList.add('hidden');
     }
 
-    async function confirmDelete() {
-      if (!pendingDeleteItem || isLoading) return;
-      
-      isLoading = true;
-      const btn = document.getElementById('confirm-delete-btn');
-      btn.textContent = 'Deleting...';
-      btn.disabled = true;
+   // REPLACE confirmDelete body with this Google-Sheets version
+async function confirmDelete() {
+  if (!pendingDeleteItem || isLoading) return;
+  isLoading = true;
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.textContent = 'Deleting...';
+  btn.disabled = true;
 
-      const result = await window.dataSdk.delete(pendingDeleteItem);
-      
-      isLoading = false;
-      btn.textContent = 'Delete';
-      btn.disabled = false;
-      
-      if (result.isOk) {
-        showToast('Item deleted');
-      } else {
-        showToast('Failed to delete item', 'error');
-      }
-      
-      pendingDeleteItem = null;
-      document.getElementById('delete-confirm').classList.add('hidden');
-    }
+  // send a row whose *Notes* field is exactly "__DELETE__" – we’ll catch it in doPost
+  const deletePayload = {
+    type: pendingDeleteItem.type,
+    name: pendingDeleteItem.name,
+    category: pendingDeleteItem.category,
+    amount: pendingDeleteItem.amount || 0,
+    date: pendingDeleteItem.date || '',
+    month: pendingDeleteItem.month,
+    notes: '__DELETE__',   // flag for Apps-Script
+    createdAt: pendingDeleteItem.createdAt   // unique key
+  };
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(deletePayload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const ans = await res.json();
+    if (ans.status === 'ok') {
+      showToast('Item deleted');
+      await loadFromGoogleSheet();
+    } else throw new Error(ans.message);
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to delete item', 'error');
+  } finally {
+    isLoading = false;
+    btn.textContent = 'Delete';
+    btn.disabled = false;
+    pendingDeleteItem = null;
+    document.getElementById('delete-confirm').classList.add('hidden');
+  }
+}
 
     // Close modal on backdrop click
     document.getElementById('modal-overlay').addEventListener('click', function(e) {
@@ -1196,5 +1298,5 @@
     document.getElementById('current-month').textContent = formatMonth(currentMonth);
     initDataSdk();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c10186ba60f4091',t:'MTc2ODkyODA4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+></body>
 </html>
