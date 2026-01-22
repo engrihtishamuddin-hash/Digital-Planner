@@ -432,7 +432,7 @@
 
     /* 1️⃣  PASTE YOUR PERSONAL GOOGLE-SCRIPT URL ONCE               */
       /*     (you can store it in localStorage or ask the user once)   */
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzh1O0LL58bZ3teeRXXVqxzTXSuA_s0l_l5jBkeRM7ZIFDpE0VN0JVd1apRxauGh4TxcA/exec'
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_oxhu78oiSvu6r-pxvOCfyzjWIY64HnkKI7gPDKtgq7j2BbTc3j9FYd7Q48vNDLTuOA/exec'
 
       /*localStorage.getItem('personalScriptUrl') ||
                                 prompt('Paste your private Google-Script URL (from the PDF):');
@@ -789,66 +789,90 @@
 
 
     async function loadFromGoogleSheet() {
-  const res  = await fetch(GOOGLE_SCRIPT_URL);
-  const rows = await res.json();          // array of objects from doGet()
-  allData = rows.map(r => ({
-    type: r.Type,
-    name: r.Name,
-    category: r.Category,
-    amount: parseFloat(r.Amount || 0),
-    date: r.Date,
-    month: r.Month,
-    notes: r.Notes,
-    createdAt: r.CreatedAt,
-    __backendId: r.CreatedAt             // cheap unique key
-  }));
+  const res = await fetch(GOOGLE_SCRIPT_URL);
+  const rows = await res.json();
+  
+  allData = rows.map(r => {
+    const item = {
+      type: r.Type,
+      name: r.Name,
+      category: r.Category,
+      amount: parseFloat(r.Amount || 0),
+      date: r.Date,
+      month: r.Month,
+      notes: r.Notes,
+      createdAt: r.CreatedAt,
+      __backendId: r.CreatedAt
+    };
+    
+    // Parse income data
+    if (r.Type === 'income' && r.Notes && r.Notes.startsWith('Expected:')) {
+      item.expected = parseFloat(r.Notes.split(':')[1]) || 0;
+      item.actual = item.amount;
+    }
+    
+    // Parse budget data
+    if (r.Type === 'budget') {
+      item.budgeted = item.amount;
+      item.spent = parseFloat(r.Notes) || 0; // Store spent in notes
+    }
+    
+    // Parse savings data
+    if (r.Type === 'savings') {
+      item.target = item.amount;
+      item.saved = parseFloat(r.Notes) || 0; // Store saved in notes
+    }
+    
+    return item;
+  });
+  
   renderAll();
 }
 
        /*  2️⃣  NEW saveIncome — NO Canva SDK ****************************/
     async function saveIncome(e) {
-      e.preventDefault();
-      if (isLoading) return;                 // 999 limit removed — Sheets can handle > 999 rows
+  e.preventDefault();
+  if (isLoading) return;
 
-      isLoading = true;
-      const btn = document.getElementById('save-income-btn');
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
+  isLoading = true;
+  const btn = document.getElementById('save-income-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-      // build the exact JSON your doPost() expects
-      const payload = {
-        type: 'income',
-        name: document.getElementById('income-source').value,
-        expected: parseFloat(document.getElementById('income-expected').value) || 0,
-        actual:   parseFloat(document.getElementById('income-actual').value)   || 0,
-        month: getMonthKey(currentMonth),
-        createdAt: new Date().toISOString()
-      };
+  const payload = {
+    type: 'income',
+    name: document.getElementById('income-source').value,
+    category: 'Income', // Add a category
+    amount: parseFloat(document.getElementById('income-actual').value) || 0,
+    date: new Date().toISOString().split('T')[0],
+    month: getMonthKey(currentMonth),
+    notes: `Expected: ${document.getElementById('income-expected').value}`,
+    createdAt: new Date().toISOString()
+  };
 
-      try {
-        const res = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' }
-        });
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
 
-        const answer = await res.json();
-        if (answer.status === 'ok') {
-          showToast('Income added successfully!');
-          closeModal();
-          await loadFromGoogleSheet();   // refresh local allData array
-        } else {
-          throw new Error(answer.message || 'Server error');
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('Failed to save income', 'error');
-        btn.textContent = 'Save';
-        btn.disabled = false;
-      } finally {
-        isLoading = false;
-      }
+    const answer = await res.json();
+    if (answer.status === 'ok') {
+      showToast('Income added successfully!');
+      closeModal();
+      await loadFromGoogleSheet();
+    } else {
+      throw new Error(answer.message || 'Server error');
     }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to save income', 'error');
+    btn.textContent = 'Save';
+    btn.disabled = false;
+  } finally {
+    isLoading = false;
+  }
+}
 
      
 
