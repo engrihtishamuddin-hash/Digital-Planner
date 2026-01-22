@@ -439,13 +439,11 @@
 
     /* 1️⃣  PASTE YOUR PERSONAL GOOGLE-SCRIPT URL ONCE               */
       /*     (you can store it in localStorage or ask the user once)   */
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_oxhu78oiSvu6r-pxvOCfyzjWIY64HnkKI7gPDKtgq7j2BbTc3j9FYd7Q48vNDLTuOA/exec'
-
-      /*localStorage.getItem('personalScriptUrl') ||
+      const GOOGLE_SCRIPT_URL = localStorage.getItem('personalScriptUrl') ||
                                 prompt('Paste your private Google-Script URL (from the PDF):');
 
       if (!GOOGLE_SCRIPT_URL) throw new Error('Google-Script URL required');
-      localStorage.setItem('personalScriptUrl', GOOGLE_SCRIPT_URL);*/
+      localStorage.setItem('personalScriptUrl', GOOGLE_SCRIPT_URL);
 
        // Data Handler for Data SDK
     const dataHandler = {
@@ -929,32 +927,27 @@
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  // build payload
+  // Build payload
   const payload = {
     type: 'budget',
     category: document.getElementById('budget-category').value,
     budgeted: parseFloat(document.getElementById('budget-amount').value) || 0,
-    spent:    parseFloat(document.getElementById('budget-spent').value)  || 0,
+    spent: parseFloat(document.getElementById('budget-spent').value) || 0,
     month: getMonthKey(currentMonth),
-    createdAt: editId || new Date().toISOString()   // reuse CreatedAt as cheap UID
+    createdAt: editId || new Date().toISOString()
   };
-
-  // If we are editing we first delete the old row (simple way: skip duplicate key in Sheets)
-  // For now we just append the new values – Google Sheets will keep both rows;
-  // you can enhance doPost() to overwrite on matching (type,month,category) if you prefer.
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' }
+      body: JSON.stringify(payload)
     });
 
     const answer = await res.json();
     if (answer.status === 'ok') {
       showToast('Budget saved successfully!');
       closeModal();
-      await loadFromGoogleSheet();   // refresh tables
+      await loadFromGoogleSheet();
     } else {
       throw new Error(answer.message || 'Server error');
     }
@@ -1006,9 +999,9 @@
 
 
    
-   async function saveExpense(e) {
+ async function saveExpense(e) {
   e.preventDefault();
-  if (isLoading) return;          // 999 limit removed – Sheets handles > 999 rows
+  if (isLoading) return;
 
   isLoading = true;
   const btn = document.getElementById('save-expense-btn');
@@ -1021,30 +1014,33 @@
   // Build payload
   const payload = {
     type: 'expense',
-    date: document.getElementById('expense-date').value,
-    description: document.getElementById('expense-description').value,
+    name: document.getElementById('expense-description').value,
     category: document.getElementById('expense-category').value,
     amount: parseFloat(document.getElementById('expense-amount').value) || 0,
+    date: document.getElementById('expense-date').value,
     month: expenseMonth,
+    notes: document.getElementById('expense-description').value,
     createdAt: new Date().toISOString()
   };
 
   try {
-    // 1. save the expense row
+    // 1. Save the expense row
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' }
+      body: JSON.stringify(payload)
     });
+    
     const answer = await res.json();
-    if (answer.status !== 'ok') throw new Error(answer.message || 'Server error');
+    if (answer.status !== 'ok') {
+      throw new Error(answer.message || 'Server error');
+    }
 
-    // 2. auto-update budget “spent” for this category
+    // 2. Auto-update budget "spent" for this category
     await updateBudgetSpent(payload.category, payload.amount, expenseMonth);
 
     showToast('Expense added successfully!');
     closeModal();
-    await loadFromGoogleSheet(); // refresh tables
+    await loadFromGoogleSheet();
   } catch (err) {
     console.error(err);
     showToast('Failed to save expense', 'error');
@@ -1055,30 +1051,84 @@
   }
 }
 
-            async function updateBudgetSpent(category, amount, month) {
-        // find the existing budget row for this category/month
-        const budgetItem = allData.find(d => d.type === 'budget' && d.category === category && d.month === month);
-        if (!budgetItem) return;          // no budget set, nothing to update
+async function updateBudgetSpent(category, amount, month) {
+  // Find the existing budget row for this category/month
+  const budgetItem = allData.find(d => 
+    d.type === 'budget' && 
+    d.category === category && 
+    d.month === month
+  );
+  
+  if (!budgetItem) {
+    // No budget set for this category, skip update
+    return;
+  }
 
-        // build updated payload (keep same key so Sheets can overwrite if you enhance doPost)
-        const updated = {
-          ...budgetItem,
-          spent: (budgetItem.spent || 0) + amount
-        };
+  // Build updated payload
+  const updatedBudget = {
+    type: 'budget',
+    category: budgetItem.category,
+    budgeted: budgetItem.budgeted || 0,
+    spent: (budgetItem.spent || 0) + amount,
+    month: month,
+    createdAt: budgetItem.createdAt // Keep original createdAt to trigger update
+  };
 
-        // send to Google Sheets
-        try {
-          const res = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(updated),
-            headers: { 'Content-Type': 'application/json' }
-          });
-          const ans = await res.json();
-          if (ans.status !== 'ok') throw new Error(ans.message || 'Server error');
-        } catch (err) {
-          console.error('Could not update budget spent:', err);
-        }
-      }
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(updatedBudget)
+    });
+    
+    const answer = await res.json();
+    if (answer.status !== 'ok') {
+      throw new Error(answer.message || 'Failed to update budget');
+    }
+  } catch (err) {
+    console.error('Could not update budget spent:', err);
+    // Don't throw - we don't want to fail the expense save if budget update fails
+  }
+}
+
+
+           async function updateBudgetSpent(category, amount, month) {
+  // Find the existing budget row for this category/month
+  const budgetItem = allData.find(d => 
+    d.type === 'budget' && 
+    d.category === category && 
+    d.month === month
+  );
+  
+  if (!budgetItem) {
+    // No budget set for this category, skip update
+    return;
+  }
+
+  // Build updated payload with proper structure for Google Apps Script
+  const updated = {
+    type: 'budget',
+    category: budgetItem.category,
+    budgeted: budgetItem.budgeted || 0,
+    spent: (budgetItem.spent || 0) + amount,
+    month: month,
+    createdAt: budgetItem.createdAt // CRITICAL: Keep original createdAt to trigger update
+  };
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(updated)
+    });
+    
+    const ans = await res.json();
+    if (ans.status !== 'ok') {
+      throw new Error(ans.message || 'Server error');
+    }
+  } catch (err) {
+    console.error('Could not update budget spent:', err);
+    // Don't throw error - we don't want expense save to fail if budget update fails
+  }
+}
 
     function openSavingsModal() {
       showModal(`
@@ -1108,49 +1158,48 @@
 
 
     
-        async function saveSavingsGoal(e) {
-      e.preventDefault();
-      if (isLoading) return;          // 999 limit removed – Sheets handles > 999 rows
+  async function saveSavingsGoal(e) {
+  e.preventDefault();
+  if (isLoading) return;
 
-      isLoading = true;
-      const btn = document.getElementById('save-savings-btn');
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
+  isLoading = true;
+  const btn = document.getElementById('save-savings-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-      // Build payload
-      const payload = {
-        type: 'savings',
-        name: document.getElementById('savings-name').value,
-        target: parseFloat(document.getElementById('savings-target').value) || 0,
-        saved:  parseFloat(document.getElementById('savings-saved').value)  || 0,
-        month: getMonthKey(currentMonth),
-        createdAt: new Date().toISOString()
-      };
+  // Build payload
+  const payload = {
+    type: 'savings',
+    name: document.getElementById('savings-name').value,
+    target: parseFloat(document.getElementById('savings-target').value) || 0,
+    saved: parseFloat(document.getElementById('savings-saved').value) || 0,
+    month: getMonthKey(currentMonth),
+    createdAt: new Date().toISOString()
+  };
 
-      try {
-        const res = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' }
-        });
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
 
-        const answer = await res.json();
-        if (answer.status === 'ok') {
-          showToast('Savings goal added!');
-          closeModal();
-          await loadFromGoogleSheet(); // refresh tables
-        } else {
-          throw new Error(answer.message || 'Server error');
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('Failed to save goal', 'error');
-        btn.textContent = 'Save';
-        btn.disabled = false;
-      } finally {
-        isLoading = false;
-      }
+    const answer = await res.json();
+    if (answer.status === 'ok') {
+      showToast('Savings goal added!');
+      closeModal();
+      await loadFromGoogleSheet();
+    } else {
+      throw new Error(answer.message || 'Server error');
     }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to save goal', 'error');
+    btn.textContent = 'Save';
+    btn.disabled = false;
+  } finally {
+    isLoading = false;
+  }
+}
 
     function editSavings(id) {
       const item = allData.find(d => d.__backendId === id);
@@ -1180,90 +1229,107 @@
 
             
           async function updateSavingsAmount(e, id) {
-        e.preventDefault();
-        if (isLoading) return;
+  e.preventDefault();
+  if (isLoading) return;
 
-        isLoading = true;
-        const btn = document.getElementById('update-savings-btn');
-        btn.textContent = 'Saving...';
-        btn.disabled = true;
+  isLoading = true;
+  const btn = document.getElementById('update-savings-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-        // locate the goal
-        const item = allData.find(d => d.__backendId === id);
-        if (!item) return;
+  // Locate the goal
+  const item = allData.find(d => d.__backendId === id);
+  if (!item) {
+    showToast('Savings goal not found', 'error');
+    isLoading = false;
+    btn.textContent = 'Add';
+    btn.disabled = false;
+    return;
+  }
 
-        const addAmount = parseFloat(document.getElementById('add-savings-amount').value) || 0;
-        const updated = {
-          ...item,
-          saved: (item.saved || 0) + addAmount
-        };
+  const addAmount = parseFloat(document.getElementById('add-savings-amount').value) || 0;
 
-        try {
-          // send updated row to Google Sheets
-          const res = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(updated),
-            headers: { 'Content-Type': 'application/json' }
-          });
+  // Build updated payload with explicit properties
+  const updated = {
+    type: 'savings',
+    name: item.name,
+    target: item.target || 0,
+    saved: (item.saved || 0) + addAmount,
+    month: item.month,
+    createdAt: item.createdAt // CRITICAL: Keep original createdAt to trigger update
+  };
 
-          const ans = await res.json();
-          if (ans.status !== 'ok') throw new Error(ans.message || 'Server error');
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(updated)
+    });
 
-          showToast('Savings updated!');
-          closeModal();
-          await loadFromGoogleSheet(); // refresh
-        } catch (err) {
-          console.error(err);
-          showToast('Failed to update savings', 'error');
-          btn.textContent = 'Add';
-          btn.disabled = false;
-        } finally {
-          isLoading = false;
-        }
-      }
+    const ans = await res.json();
+    if (ans.status !== 'ok') {
+      throw new Error(ans.message || 'Server error');
+    }
+
+    showToast('Savings updated!');
+    closeModal();
+    await loadFromGoogleSheet();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to update savings', 'error');
+    btn.textContent = 'Add';
+    btn.disabled = false;
+  } finally {
+    isLoading = false;
+  }
+}
 
     
-        async function saveNotes() {
-        if (isLoading) return;
+  async function saveNotes() {
+  if (isLoading) return;
 
-        const notesValue = document.getElementById('monthly-notes').value;
-        const monthKey = getMonthKey(currentMonth);
-        const existingNotes = allData.find(d => d.type === 'notes' && d.month === monthKey);
+  const notesValue = document.getElementById('monthly-notes').value;
+  const monthKey = getMonthKey(currentMonth);
+  const existingNotes = allData.find(d => d.type === 'notes' && d.month === monthKey);
 
-        isLoading = true;
-        const btn = document.getElementById('save-notes-btn');
-        btn.textContent = 'Saving...';
-        btn.disabled = true;
+  isLoading = true;
+  const btn = document.getElementById('save-notes-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
 
-        // Build payload
-        const payload = {
-          type: 'notes',
-          notes: notesValue,
-          month: monthKey,
-          createdAt: existingNotes ? existingNotes.createdAt : new Date().toISOString() // keep same key
-        };
+  // Build payload
+  const payload = {
+    type: 'notes',
+    name: '',
+    category: '',
+    amount: 0,
+    date: '',
+    month: monthKey,
+    notes: notesValue,
+    createdAt: existingNotes ? existingNotes.createdAt : new Date().toISOString()
+  };
 
-        try {
-          const res = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json' }
-          });
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
 
-          const ans = await res.json();
-          if (ans.status !== 'ok') throw new Error(ans.message || 'Server error');
+    const ans = await res.json();
+    if (ans.status !== 'ok') {
+      throw new Error(ans.message || 'Server error');
+    }
 
-          showToast('Notes saved!');
-          await loadFromGoogleSheet(); // refresh
-        } catch (err) {
-          console.error(err);
-          showToast('Failed to save notes', 'error');
-        } finally {
-          isLoading = false;
-          btn.textContent = 'Save Notes';
-          btn.disabled = false;
-        }
-      }
+    showToast('Notes saved!');
+    await loadFromGoogleSheet();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to save notes', 'error');
+  } finally {
+    isLoading = false;
+    btn.textContent = 'Save Notes';
+    btn.disabled = false;
+  }
+}
 
         
 
