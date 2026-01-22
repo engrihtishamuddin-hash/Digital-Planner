@@ -432,8 +432,11 @@
 
     /* 1️⃣  PASTE YOUR PERSONAL GOOGLE-SCRIPT URL ONCE               */
       /*     (you can store it in localStorage or ask the user once)   */
-      const GOOGLE_SCRIPT_URL = localStorage.getItem('personalScriptUrl') ||
-                                prompt('Paste your private Google-Script URL (from the PDF):');
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEuCzs1X4O8TFOr-QK03c1yjgTTFp0TgEGgAIEVJQ9ri_IB-kxDY5zmOcikBDatLK38w/exec'
+
+      /*localStorage.getItem('personalScriptUrl') ||
+                                prompt('Paste your private Google-Script URL (from the PDF):');*/
+
       if (!GOOGLE_SCRIPT_URL) throw new Error('Google-Script URL required');
       localStorage.setItem('personalScriptUrl', GOOGLE_SCRIPT_URL);
 
