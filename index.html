@@ -793,11 +793,34 @@
 
 
 
-    async function loadFromGoogleSheet() {
-      const res = await fetch(GOOGLE_SCRIPT_URL);
-      const rows = await res.json();
-      
-      allData = rows.map(r => ({
+   async function loadFromGoogleSheet() {
+  const res = await fetch(GOOGLE_SCRIPT_URL);
+  const rows = await res.json();
+  
+  allData = rows.map(r => {
+    // Handle both array format (new) and object format (legacy)
+    if (Array.isArray(r)) {
+      return {
+        type: r[0] || '',
+        category: r[1] || '',
+        name: r[2] || '',
+        expected: parseFloat(r[3]) || 0,
+        actual: parseFloat(r[4]) || 0,
+        budgeted: parseFloat(r[5]) || 0,
+        spent: parseFloat(r[6]) || 0,
+        date: r[7] || '',
+        description: r[8] || '',
+        amount: parseFloat(r[9]) || 0,
+        target: parseFloat(r[10]) || 0,
+        saved: parseFloat(r[11]) || 0,
+        notes: r[12] || '',
+        month: r[13] || '',
+        createdAt: r[14] || '',
+        __backendId: r[14] || Math.random().toString(36)
+      };
+    } else {
+      // Legacy object format
+      return {
         type: r.type || '',
         category: r.category || '',
         name: r.name || '',
@@ -813,11 +836,13 @@
         notes: r.notes || '',
         month: r.month || '',
         createdAt: r.createdAt || '',
-        __backendId: r.createdAt || Math.random().toString(36) // unique key
-      }));
-      
-      renderAll();
+        __backendId: r.createdAt || Math.random().toString(36)
+      };
     }
+  });
+  
+  renderAll();
+}
 
        /*  2️⃣  NEW saveIncome — NO Canva SDK ****************************/
  async function saveIncome(e) {
@@ -832,28 +857,29 @@
   const expectedVal = parseFloat(document.getElementById('income-expected').value) || 0;
   const actualVal = parseFloat(document.getElementById('income-actual').value) || 0;
 
-  const payload = {
-    type: 'income',
-    category: 'Income',           // B: category
-    name: document.getElementById('income-source').value,  // C: name
-    expected: expectedVal,        // D: expected
-    actual: actualVal,            // E: actual
-    budgeted: 0,                  // F: budgeted (not used)
-    spent: 0,                     // G: spent (not used)
-    date: '',                     // H: date (not used for income)
-    description: '',              // I: description (not used)
-    amount: actualVal,            // J: amount = actual (for totals)
-    target: 0,                    // K: target (not used)
-    saved: 0,                     // L: saved (not used)
-    notes: `Expected: ${expectedVal}`,  // M: notes
-    month: getMonthKey(currentMonth),   // N: month
-    createdAt: new Date().toISOString() // O: createdAt
-  };
+  // ARRAY format: exact column order A-O
+  const payload = [
+    'income',           // A: type
+    'Income',           // B: category
+    document.getElementById('income-source').value,  // C: name
+    expectedVal,        // D: expected
+    actualVal,          // E: actual
+    0,                  // F: budgeted
+    0,                  // G: spent
+    '',                 // H: date
+    '',                 // I: description
+    actualVal,          // J: amount
+    0,                  // K: target
+    0,                  // L: saved
+    `Expected: ${expectedVal}`,  // M: notes
+    getMonthKey(currentMonth),   // N: month
+    new Date().toISOString()     // O: createdAt
+  ];
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload),  // Send array, not object
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }
     });
 
@@ -929,23 +955,23 @@
   const budgetedVal = parseFloat(document.getElementById('budget-amount').value) || 0;
   const spentVal = parseFloat(document.getElementById('budget-spent').value) || 0;
 
-  const payload = {
-    type: 'budget',
-    category: document.getElementById('budget-category').value,  // B: category
-    name: '',                     // C: name (not used)
-    expected: 0,                  // D: expected (not used)
-    actual: 0,                    // E: actual (not used)
-    budgeted: budgetedVal,        // F: budgeted
-    spent: spentVal,              // G: spent
-    date: '',                     // H: date (not used)
-    description: '',              // I: description (not used)
-    amount: budgetedVal,          // J: amount = budgeted (for totals)
-    target: 0,                    // K: target (not used)
-    saved: 0,                     // L: saved (not used)
-    notes: '',                    // M: notes (not used)
-    month: getMonthKey(currentMonth),  // N: month
-    createdAt: editId || new Date().toISOString()  // O: createdAt
-    };
+  const payload = [
+    'budget',                                   // A: type
+    document.getElementById('budget-category').value,  // B: category
+    '',                                         // C: name
+    0,                                          // D: expected
+    0,                                          // E: actual
+    budgetedVal,                                // F: budgeted
+    spentVal,                                   // G: spent
+    '',                                         // H: date
+    '',                                         // I: description
+    budgetedVal,                                // J: amount
+    0,                                          // K: target
+    0,                                          // L: saved
+    '',                                         // M: notes
+    getMonthKey(currentMonth),                  // N: month
+    editId || new Date().toISOString()          // O: createdAt
+  ];
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1156,23 +1182,23 @@ async function saveExpense(e) {
   const targetVal = parseFloat(document.getElementById('savings-target').value) || 0;
   const savedVal = parseFloat(document.getElementById('savings-saved').value) || 0;
 
-  const payload = {
-    type: 'savings',
-    category: '',                 // B: category (not used)
-    name: document.getElementById('savings-name').value,  // C: name
-    expected: 0,                  // D: expected (not used)
-    actual: 0,                    // E: actual (not used)
-    budgeted: 0,                  // F: budgeted (not used)
-    spent: 0,                     // G: spent (not used)
-    date: '',                     // H: date (not used)
-    description: '',              // I: description (not used)
-    amount: 0,                    // J: amount (not used)
-    target: targetVal,            // K: target
-    saved: savedVal,              // L: saved
-    notes: '',                    // M: notes (not used)
-    month: getMonthKey(currentMonth),  // N: month
-    createdAt: new Date().toISOString()  // O: createdAt
-  };
+  const payload = [
+    'savings',                                  // A: type
+    '',                                         // B: category
+    document.getElementById('savings-name').value,  // C: name
+    0,                                          // D: expected
+    0,                                          // E: actual
+    0,                                          // F: budgeted
+    0,                                          // G: spent
+    '',                                         // H: date
+    '',                                         // I: description
+    0,                                          // J: amount
+    targetVal,                                  // K: target
+    savedVal,                                   // L: saved
+    '',                                         // M: notes
+    getMonthKey(currentMonth),                  // N: month
+    new Date().toISOString()                    // O: createdAt
+  ];
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1294,23 +1320,23 @@ async function saveExpense(e) {
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  const payload = {
-    type: 'notes',
-    category: '',                 // B: category (not used)
-    name: '',                     // C: name (not used)
-    expected: 0,                  // D: expected (not used)
-    actual: 0,                    // E: actual (not used)
-    budgeted: 0,                  // F: budgeted (not used)
-    spent: 0,                     // G: spent (not used)
-    date: '',                     // H: date (not used)
-    description: '',              // I: description (not used)
-    amount: 0,                    // J: amount (not used)
-    target: 0,                    // K: target (not used)
-    saved: 0,                     // L: saved (not used)
-    notes: notesValue,            // M: notes
-    month: monthKey,              // N: month
-    createdAt: new Date().toISOString()  // O: createdAt
-  };
+  const payload = [
+  'notes',                                    // A: type
+  '',                                         // B: category
+  '',                                         // C: name
+  0,                                          // D: expected
+  0,                                          // E: actual
+  0,                                          // F: budgeted
+  0,                                          // G: spent
+  '',                                         // H: date
+  '',                                         // I: description
+  0,                                          // J: amount
+  0,                                          // K: target
+  0,                                          // L: saved
+  document.getElementById('monthly-notes').value,  // M: notes
+  getMonthKey(currentMonth),                  // N: month
+  new Date().toISOString()                    // O: createdAt
+];
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1360,16 +1386,13 @@ async function confirmDelete() {
   btn.disabled = true;
 
   // send a row whose *Notes* field is exactly "__DELETE__" – we’ll catch it in doPost
-  const deletePayload = {
-    type: pendingDeleteItem.type,
-    name: pendingDeleteItem.name,
-    category: pendingDeleteItem.category,
-    amount: pendingDeleteItem.amount || 0,
-    date: pendingDeleteItem.date || '',
-    month: pendingDeleteItem.month,
-    notes: '__DELETE__',   // flag for Apps-Script
-    createdAt: pendingDeleteItem.createdAt   // unique key
-  };
+    const payload = [
+    'delete',           // A: type (special marker)
+    '', '', 0, 0, 0, 0, '', '', 0, 0, 0,
+    '__DELETE__',       // M: notes (delete marker)
+    '',
+    pendingDeleteItem.createdAt  // O: createdAt (match for delete)
+  ];
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
