@@ -794,45 +794,30 @@
 
 
     async function loadFromGoogleSheet() {
-  const res = await fetch(GOOGLE_SCRIPT_URL);
-  const rows = await res.json();
-  
-  allData = rows.map(r => {
-    const item = {
-      type: r.Type,
-      name: r.Name,
-      category: r.Category,
-      amount: parseFloat(r.Amount || 0),
-      date: r.Date,
-      month: r.Month,
-      notes: r.Notes,
-      createdAt: r.CreatedAt,
-      __backendId: r.CreatedAt
-    };
-    
-    // Parse income data
-    if (r.Type === 'income' && r.Notes && r.Notes.startsWith('Expected:')) {
-      item.expected = parseFloat(r.Notes.split(':')[1]) || 0;
-      item.actual = item.amount;
+      const res = await fetch(GOOGLE_SCRIPT_URL);
+      const rows = await res.json();
+      
+      allData = rows.map(r => ({
+        type: r.type || '',
+        category: r.category || '',
+        name: r.name || '',
+        expected: parseFloat(r.expected) || 0,
+        actual: parseFloat(r.actual) || 0,
+        budgeted: parseFloat(r.budgeted) || 0,
+        spent: parseFloat(r.spent) || 0,
+        date: r.date || '',
+        description: r.description || '',
+        amount: parseFloat(r.amount) || 0,
+        target: parseFloat(r.target) || 0,
+        saved: parseFloat(r.saved) || 0,
+        notes: r.notes || '',
+        month: r.month || '',
+        createdAt: r.createdAt || '',
+        __backendId: r.createdAt || Math.random().toString(36) // unique key
+      }));
+      
+      renderAll();
     }
-    
-    // Parse budget data
-    if (r.Type === 'budget') {
-      item.budgeted = item.amount;
-      item.spent = parseFloat(r.Notes) || 0; // Store spent in notes
-    }
-    
-    // Parse savings data
-    if (r.Type === 'savings') {
-      item.target = item.amount;
-      item.saved = parseFloat(r.Notes) || 0; // Store saved in notes
-    }
-    
-    return item;
-  });
-  
-  renderAll();
-}
 
        /*  2️⃣  NEW saveIncome — NO Canva SDK ****************************/
     async function saveIncome(e) {
@@ -845,16 +830,22 @@
   btn.disabled = true;
 
   const payload = {
-    type: 'income',
-    name: document.getElementById('income-source').value,
-    category: 'Income', // Add a category
-    amount: parseFloat(document.getElementById('income-actual').value) || 0,
-    date: new Date().toISOString().split('T')[0],
-    month: getMonthKey(currentMonth),
-    notes: `Expected: ${document.getElementById('income-expected').value}`,
-    createdAt: new Date().toISOString()
-  };
-
+  type: 'income',
+  category: '',              // not used for income
+  name: document.getElementById('income-source').value,
+  expected: parseFloat(document.getElementById('income-expected').value) || 0,
+  actual: parseFloat(document.getElementById('income-actual').value) || 0,
+  budgeted: 0,               // not used
+  spent: 0,                  // not used
+  date: '',                  // not used
+  description: '',           // not used
+  amount: 0,                 // not used (use actual instead)
+  target: 0,                 // not used
+  saved: 0,                  // not used
+  notes: 'Expected: ' + (document.getElementById('income-expected').value || 0),
+  month: getMonthKey(currentMonth),
+  createdAt: new Date().toISOString()
+};
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
