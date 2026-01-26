@@ -820,7 +820,7 @@
     }
 
        /*  2️⃣  NEW saveIncome — NO Canva SDK ****************************/
-    async function saveIncome(e) {
+ async function saveIncome(e) {
   e.preventDefault();
   if (isLoading) return;
 
@@ -829,23 +829,27 @@
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
+  const expectedVal = parseFloat(document.getElementById('income-expected').value) || 0;
+  const actualVal = parseFloat(document.getElementById('income-actual').value) || 0;
+
   const payload = {
-  type: 'income',
-  category: '',              // not used for income
-  name: document.getElementById('income-source').value,
-  expected: parseFloat(document.getElementById('income-expected').value) || 0,
-  actual: parseFloat(document.getElementById('income-actual').value) || 0,
-  budgeted: 0,               // not used
-  spent: 0,                  // not used
-  date: '',                  // not used
-  description: '',           // not used
-  amount: 0,                 // not used (use actual instead)
-  target: 0,                 // not used
-  saved: 0,                  // not used
-  notes: 'Expected: ' + (document.getElementById('income-expected').value || 0),
-  month: getMonthKey(currentMonth),
-  createdAt: new Date().toISOString()
-};
+    type: 'income',
+    category: 'Income',           // B: category
+    name: document.getElementById('income-source').value,  // C: name
+    expected: expectedVal,        // D: expected
+    actual: actualVal,            // E: actual
+    budgeted: 0,                  // F: budgeted (not used)
+    spent: 0,                     // G: spent (not used)
+    date: '',                     // H: date (not used for income)
+    description: '',              // I: description (not used)
+    amount: actualVal,            // J: amount = actual (for totals)
+    target: 0,                    // K: target (not used)
+    saved: 0,                     // L: saved (not used)
+    notes: `Expected: ${expectedVal}`,  // M: notes
+    month: getMonthKey(currentMonth),   // N: month
+    createdAt: new Date().toISOString() // O: createdAt
+  };
+
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -853,7 +857,10 @@
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }
     });
 
-    const answer = await res.json();
+    const text = await res.text();
+    const cleanText = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+    const answer = JSON.parse(cleanText);
+
     if (answer.status === 'ok') {
       showToast('Income added successfully!');
       closeModal();
@@ -919,26 +926,26 @@
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  // Build payload
+  const budgetedVal = parseFloat(document.getElementById('budget-amount').value) || 0;
+  const spentVal = parseFloat(document.getElementById('budget-spent').value) || 0;
 
-
-      const categoryEl = document.getElementById('budget-category');
-      const amountEl = document.getElementById('budget-amount');
-      const spentEl = document.getElementById('budget-spent');
-
-      if (!categoryEl || !amountEl || !spentEl) {
-        showToast('Form not ready', 'error');
-        return;
-      }
-
-      const payload = {
-        type: 'budget',
-        category: categoryEl.value,
-        budgeted: parseFloat(amountEl.value) || 0,
-        spent: parseFloat(spentEl.value) || 0,
-        month: getMonthKey(currentMonth),
-        createdAt: editId || new Date().toISOString()
-      };
+  const payload = {
+    type: 'budget',
+    category: document.getElementById('budget-category').value,  // B: category
+    name: '',                     // C: name (not used)
+    expected: 0,                  // D: expected (not used)
+    actual: 0,                    // E: actual (not used)
+    budgeted: budgetedVal,        // F: budgeted
+    spent: spentVal,              // G: spent
+    date: '',                     // H: date (not used)
+    description: '',              // I: description (not used)
+    amount: budgetedVal,          // J: amount = budgeted (for totals)
+    target: 0,                    // K: target (not used)
+    saved: 0,                     // L: saved (not used)
+    notes: '',                    // M: notes (not used)
+    month: getMonthKey(currentMonth),  // N: month
+    createdAt: editId || new Date().toISOString()  // O: createdAt
+    };
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
@@ -947,7 +954,9 @@
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }
     });
 
-    const answer = await res.json();
+    const text = await res.text();
+    const cleanText = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+    const answer = JSON.parse(cleanText);
     if (answer.status === 'ok') {
       showToast('Budget saved successfully!');
       closeModal();
@@ -1003,7 +1012,7 @@
 
 
    
- async function saveExpense(e) {
+async function saveExpense(e) {
   e.preventDefault();
   if (isLoading) return;
 
@@ -1012,19 +1021,27 @@
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  const expenseDate = new Date(document.getElementById('expense-date').value);
-  const expenseMonth = getMonthKey(expenseDate);
+  const expenseDate = document.getElementById('expense-date').value;
+  const expenseMonth = getMonthKey(new Date(expenseDate));
 
-  // Build payload
+  const amountVal = parseFloat(document.getElementById('expense-amount').value) || 0;
+
   const payload = {
     type: 'expense',
-    name: document.getElementById('expense-description').value,
-    category: document.getElementById('expense-category').value,
-    amount: parseFloat(document.getElementById('expense-amount').value) || 0,
-    date: document.getElementById('expense-date').value,
-    month: expenseMonth,
-    notes: document.getElementById('expense-description').value,
-    createdAt: new Date().toISOString()
+    category: document.getElementById('expense-category').value,  // B: category
+    name: '',                     // C: name (not used)
+    expected: 0,                  // D: expected (not used)
+    actual: 0,                    // E: actual (not used)
+    budgeted: 0,                  // F: budgeted (not used)
+    spent: 0,                     // G: spent (not used)
+    date: expenseDate,            // H: date
+    description: document.getElementById('expense-description').value,  // I: description
+    amount: amountVal,            // J: amount
+    target: 0,                    // K: target (not used)
+    saved: 0,                     // L: saved (not used)
+    notes: '',                    // M: notes (not used)
+    month: expenseMonth,          // N: month (from date)
+    createdAt: new Date().toISOString()  // O: createdAt
   };
 
   try {
@@ -1035,7 +1052,9 @@
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }
     });
     
-    const answer = await res.json();
+    const text = await res.text();
+    const cleanText = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+    const answer = JSON.parse(cleanText);
     if (answer.status !== 'ok') {
       throw new Error(answer.message || 'Server error');
     }
@@ -1057,7 +1076,7 @@
 }
 
 
-           async function updateBudgetSpent(category, amount, month) {
+  async function updateBudgetSpent(category, amount, month) {
   // Find the existing budget row for this category/month
   const budgetItem = allData.find(d => 
     d.type === 'budget' && 
@@ -1125,7 +1144,7 @@
 
 
     
-  async function saveSavingsGoal(e) {
+ async function saveSavingsGoal(e) {
   e.preventDefault();
   if (isLoading) return;
 
@@ -1134,14 +1153,25 @@
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  // Build payload
+  const targetVal = parseFloat(document.getElementById('savings-target').value) || 0;
+  const savedVal = parseFloat(document.getElementById('savings-saved').value) || 0;
+
   const payload = {
     type: 'savings',
-    name: document.getElementById('savings-name').value,
-    target: parseFloat(document.getElementById('savings-target').value) || 0,
-    saved: parseFloat(document.getElementById('savings-saved').value) || 0,
-    month: getMonthKey(currentMonth),
-    createdAt: new Date().toISOString()
+    category: '',                 // B: category (not used)
+    name: document.getElementById('savings-name').value,  // C: name
+    expected: 0,                  // D: expected (not used)
+    actual: 0,                    // E: actual (not used)
+    budgeted: 0,                  // F: budgeted (not used)
+    spent: 0,                     // G: spent (not used)
+    date: '',                     // H: date (not used)
+    description: '',              // I: description (not used)
+    amount: 0,                    // J: amount (not used)
+    target: targetVal,            // K: target
+    saved: savedVal,              // L: saved
+    notes: '',                    // M: notes (not used)
+    month: getMonthKey(currentMonth),  // N: month
+    createdAt: new Date().toISOString()  // O: createdAt
   };
 
   try {
@@ -1151,8 +1181,9 @@
      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }
     });
 
-    const answer = await res.json();
-    if (answer.status === 'ok') {
+    const text = await res.text();
+    const cleanText = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+    const answer = JSON.parse(cleanText);    if (answer.status === 'ok') {
       showToast('Savings goal added!');
       closeModal();
       await loadFromGoogleSheet();
@@ -1196,26 +1227,26 @@
     }
 
             
-          async function updateSavingsAmount(e, id) {
-  e.preventDefault();
-  if (isLoading) return;
+      async function updateSavingsAmount(e, id) {
+      e.preventDefault();
+      if (isLoading) return;
 
-  isLoading = true;
-  const btn = document.getElementById('update-savings-btn');
-  btn.textContent = 'Saving...';
-  btn.disabled = true;
+      isLoading = true;
+      const btn = document.getElementById('update-savings-btn');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
 
-  // Locate the goal
-  const item = allData.find(d => d.__backendId === id);
-  if (!item) {
-    showToast('Savings goal not found', 'error');
-    isLoading = false;
-    btn.textContent = 'Add';
-    btn.disabled = false;
-    return;
-  }
+      // Locate the goal
+      const item = allData.find(d => d.__backendId === id);
+      if (!item) {
+        showToast('Savings goal not found', 'error');
+        isLoading = false;
+        btn.textContent = 'Add';
+        btn.disabled = false;
+        return;
+      }
 
-  const addAmount = parseFloat(document.getElementById('add-savings-amount').value) || 0;
+      const addAmount = parseFloat(document.getElementById('add-savings-amount').value) || 0;
 
   // Build updated payload with explicit properties
   const updated = {
@@ -1252,28 +1283,33 @@
 }
 
     
-  async function saveNotes() {
+ async function saveNotes() {
   if (isLoading) return;
 
   const notesValue = document.getElementById('monthly-notes').value;
   const monthKey = getMonthKey(currentMonth);
-  const existingNotes = allData.find(d => d.type === 'notes' && d.month === monthKey);
 
   isLoading = true;
   const btn = document.getElementById('save-notes-btn');
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  // Build payload
   const payload = {
     type: 'notes',
-    name: '',
-    category: '',
-    amount: 0,
-    date: '',
-    month: monthKey,
-    notes: notesValue,
-    createdAt: existingNotes ? existingNotes.createdAt : new Date().toISOString()
+    category: '',                 // B: category (not used)
+    name: '',                     // C: name (not used)
+    expected: 0,                  // D: expected (not used)
+    actual: 0,                    // E: actual (not used)
+    budgeted: 0,                  // F: budgeted (not used)
+    spent: 0,                     // G: spent (not used)
+    date: '',                     // H: date (not used)
+    description: '',              // I: description (not used)
+    amount: 0,                    // J: amount (not used)
+    target: 0,                    // K: target (not used)
+    saved: 0,                     // L: saved (not used)
+    notes: notesValue,            // M: notes
+    month: monthKey,              // N: month
+    createdAt: new Date().toISOString()  // O: createdAt
   };
 
   try {
