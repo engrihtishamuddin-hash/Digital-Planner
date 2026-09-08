@@ -499,16 +499,21 @@
     }
 
     // Utility Functions
+    // ⚡ Bolt Optimization: Cache Intl objects to avoid expensive instantiation on every render
+    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
+    const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const dateFormatter = new Intl.DateTimeFormat('en-US');
+
     function getMonthKey(date) {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     }
 
     function formatMonth(date) {
-      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      return monthFormatter.format(date);
     }
 
     function formatCurrency(amount) {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
+      return currencyFormatter.format(amount || 0);
     }
 
     function showSection(sectionName) {
@@ -681,7 +686,7 @@
 
     return `
       <tr class="border-b border-rose-100 group">
-        <td class="py-3 px-2">${new Date(item.date).toLocaleDateString()}</td>
+        <td class="py-3 px-2">${dateFormatter.format(new Date(item.date))}</td>
         <td class="py-3 px-2">${item.description}</td>
         <td class="py-3 px-2">
           <span class="px-2 py-1 bg-rose-100 text-rose-700 rounded-full text-xs">${item.category}</span>
@@ -1490,11 +1495,14 @@ const userSymbol = localStorage.getItem(CURRENCY_KEY) || '$';
 currencySelect.value = userSymbol;
 
 // 2️⃣ formatter
+// ⚡ Bolt Optimization: Cache NumberFormat instead of calling .toLocaleString on every list item
+const numberFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
 window.fmtMoney = function (num, symbol = currencySelect.value) {
-  return symbol + Number(num || 0).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return symbol + numberFormatter.format(Number(num || 0));
 };
 
 // 3️⃣ apply to EVERY money element (runs once + after each data change)
