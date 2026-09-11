@@ -671,7 +671,8 @@
   }
 
   // Sort by date descending
-  const sortedExpenses = [...expenseData].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // ⚡ Bolt Optimization: Use localeCompare on ISO date strings instead of instantiating Date objects for faster sorting
+  const sortedExpenses = [...expenseData].sort((a, b) => b.date.localeCompare(a.date));
 
   let totalExpenses = 0;
 
