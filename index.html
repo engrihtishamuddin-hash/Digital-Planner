@@ -507,8 +507,12 @@
       return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     }
 
+    // ⚡ Bolt: Cache Intl.NumberFormat instance to improve rendering performance
+    // Repeatedly instantiating Intl.NumberFormat is expensive and bottlenecks renderAll()
+    const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
     function formatCurrency(amount) {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
+      return usdFormatter.format(amount || 0);
     }
 
     function showSection(sectionName) {
@@ -1490,11 +1494,15 @@ const userSymbol = localStorage.getItem(CURRENCY_KEY) || '$';
 currencySelect.value = userSymbol;
 
 // 2️⃣ formatter
+// ⚡ Bolt: Cache Intl.NumberFormat instance to improve performance
+// toLocaleString initializes a new NumberFormat under the hood which is expensive in loops
+const baseMoneyFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
 window.fmtMoney = function (num, symbol = currencySelect.value) {
-  return symbol + Number(num || 0).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return symbol + baseMoneyFormatter.format(num || 0);
 };
 
 // 3️⃣ apply to EVERY money element (runs once + after each data change)
