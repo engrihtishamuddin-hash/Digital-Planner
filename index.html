@@ -671,7 +671,8 @@
   }
 
   // Sort by date descending
-  const sortedExpenses = [...expenseData].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Optimization: use fast string comparison instead of instantiating Date objects, exploiting YYYY-MM-DD ISO format
+  const sortedExpenses = [...expenseData].sort((a, b) => b.date < a.date ? -1 : (b.date > a.date ? 1 : 0));
 
   let totalExpenses = 0;
 
