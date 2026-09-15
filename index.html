@@ -671,7 +671,8 @@
   }
 
   // Sort by date descending
-  const sortedExpenses = [...expenseData].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // ⚡ Bolt: Replaced costly new Date() instantiation with direct string comparison for sorting ISO date strings
+  const sortedExpenses = [...expenseData].sort((a, b) => (a.date < b.date ? 1 : (a.date > b.date ? -1 : 0)));
 
   let totalExpenses = 0;
 
