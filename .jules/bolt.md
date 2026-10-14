@@ -1,0 +1,3 @@
+## 2024-10-14 - Expensive Date and Intl formatter Instantiation in Vanilla JS
+**Learning:** In vanilla JS loops and formatting functions, calling `new Date()` multiple times for ISO date sorting and repeatedly instantiating `Intl.NumberFormat` / `Intl.DateTimeFormat` (like `toLocaleDateString()`) creates massive performance overhead. Direct string comparison for ISO dates and caching `Intl` instances globally provides order-of-magnitude speedups.
+**Action:** When working on similar monolithic frontend files, always extract and cache formatters, and use string comparators for standardized date strings.
