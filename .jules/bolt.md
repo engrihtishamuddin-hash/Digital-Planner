@@ -1,0 +1,3 @@
+## 2024-05-18 - Caching Intl Formatters
+**Learning:** Repeated instantiation of Intl formatters (`Intl.NumberFormat`, `Intl.DateTimeFormat`) is a recognized performance bottleneck. The overhead of instantiating these objects on every function call (e.g., in `formatCurrency`, `formatMonth`, `fmtMoney` or inline table rendering like `toLocaleDateString`) can be significant, especially when rendering lists.
+**Action:** Instances should be cached globally to avoid re-instantiation overhead on every function call. Use `new Intl.DateTimeFormat()` or `new Intl.NumberFormat()` once and store the reference, then call `.format()` on the cached instance.
