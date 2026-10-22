@@ -1,0 +1,5 @@
+127.0.0.1 - - [22/Oct/2026 06:24:14] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 06:24:14] "GET /service-worker.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 06:24:15] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 06:24:15] "GET /tailwind.css HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 06:24:15] "GET /manifest.json HTTP/1.1" 200 -
