@@ -1,0 +1,3 @@
+## 2026-10-23 - Intl Formatter Implicit Instantiation Overhead
+**Learning:** In a vanilla JS app rendering large data sets, implicit `Intl` instantiations via `Number.toLocaleString()` and `Date.toLocaleDateString()` inside loops or frequent render cycles create a severe, measurable performance bottleneck compared to explicit `Intl.*Format` instantiation. The overhead is on the order of 100x slower.
+**Action:** When working in similar rendering contexts, explicitly instantiate and globally cache `Intl.NumberFormat` and `Intl.DateTimeFormat` objects rather than relying on the implicit string prototype methods.
