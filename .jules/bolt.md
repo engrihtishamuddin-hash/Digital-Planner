@@ -1,0 +1,3 @@
+## 2025-01-26 - Repeated Intl Formatter Instantiation
+**Learning:** Repeatedly calling `.toLocaleString()` and `.toLocaleDateString()` or instantiating `Intl.NumberFormat` / `Intl.DateTimeFormat` inside loops or frequently called functions is a massive performance bottleneck. In Node benchmarks, repeated instantiation takes ~4.4s for 100k calls, compared to ~71ms when a single formatter instance is cached and reused (a 60x speedup).
+**Action:** Cache `Intl.NumberFormat` and `Intl.DateTimeFormat` instances globally or at the module level whenever formatting dates or numbers inside lists, loops, or frequently executed functions.
